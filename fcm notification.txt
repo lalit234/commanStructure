@@ -1,0 +1,178 @@
+  
+  plugin
+  
+  
+  #local notification
+  flutter_local_notifications: ^13.0.0
+
+  #firebase core
+  firebase_core: ^2.4.1
+
+  #firebase messaging
+  firebase_messaging: ^14.2.1
+  
+  
+  
+  
+class DefaultFirebaseConfig
+{
+  static FirebaseOptions get platformOptions {
+    if (Platform.isIOS) {
+      return const FirebaseOptions(
+        appId: '1:10277790271:ios:0cb237d64889aaee0aa70a',
+        apiKey: 'AIzaSyDpIe-57Qpg-Ffk6rPt-m_uvoP8kK_ZMw',
+        projectId: 'ac-serce-9eae0',
+        messagingSenderId: '10271790271',
+        iosBundleId: 'com.acservice',
+      );
+    } else {
+      // Android
+      return const FirebaseOptions(
+        appId: '1:10277717271:android:3ed006d71c125a820aa70a',
+        apiKey: 'AIzaSyCRyQgzQ1cK1jos8TE4Bi-XyJnOnKTEg',
+        projectId: 'ac-servi-9eae0',
+        messagingSenderId: '10271790271',
+      );
+    }
+  }
+}
+
+
+
+
+main file
+
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin=FlutterLocalNotificationsPlugin();
+AndroidNotificationChannel channel =const AndroidNotificationChannel('channel', 'this is app notification',playSound: true);
+
+void _initializeLocalNotification() {
+  var iosInitializationSettings = const DarwinInitializationSettings(requestAlertPermission: true,requestBadgePermission: true,requestSoundPermission: true);
+  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+
+  var initSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: iosInitializationSettings);
+
+  flutterLocalNotificationsPlugin.initialize(initSettings,onDidReceiveNotificationResponse:onDidReceiveLocalNotification,onDidReceiveBackgroundNotificationResponse:onDidReceiveBackgroundNotificationResponse);
+
+}
+
+
+void onDidReceiveLocalNotification(NotificationResponse details) {
+
+  Utils.showLog(details.payload.toString());
+
+}
+
+void onDidReceiveBackgroundNotificationResponse(NotificationResponse details) {
+  Utils.showLog(details.payload.toString());
+
+}
+
+
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+
+  showNotification(message);
+}
+
+showNotification(RemoteMessage message) async {
+
+  if(message!=null)
+  {
+
+    Utils.showLog(message.data!=null ? json.encode(message.data) : "");
+
+    RemoteNotification? notification = message.notification;
+
+    String title = "";
+    String desc = "";
+
+    if(Platform.isIOS)
+    {
+      title = notification!.title.toString();
+      desc = notification!.body.toString();
+    }else
+    {
+      title = message.data.containsKey('title') ? message.data['title'] : "";
+      desc = message.data.containsKey('body') ? message.data['body'] : "";
+    }
+
+    flutterLocalNotificationsPlugin.show(notification.hashCode, title, desc, payload : json.encode(message.data), NotificationDetails(android: AndroidNotificationDetails(channel.id,channel.name,color: Colors.blue,playSound: true,icon: '@mipmap/ic_launcher')));
+
+  }
+
+}
+
+
+Future<void> main() async {
+  await GetStorage.init();
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseConfig.platformOptions);
+  runApp(const MyApp());
+
+  _initializeLocalNotification();
+
+  FirebaseMessaging.instance.getInitialMessage();
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+    showNotification(message);
+  });
+}
+
+class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+
+  static _MyAppState? of(BuildContext context) => context.findAncestorStateOfType<_MyAppState>();
+
+}
+
+class _MyAppState extends State<MyApp> {
+
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: Utils.getColor (ColorCode.blue)));
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp,]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+    return ScreenUtilInit(
+      designSize: const Size(360, 690),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context , child) {
+        return GetMaterialApp(
+          debugShowCheckedModeBanner: false,
+          enableLog: true,
+          navigatorKey: NavigationService.navigatorKey,
+          //locale: const Locale('en','US'),
+          translations: TranslationService(),
+          getPages: [
+            GetPage(name: RouteInfo.splashscreen, page: ()=> SplashScreen(), binding: SplashBinding()),
+
+          ],
+          initialRoute: RouteInfo.splashscreen,
+        );
+      },
+      child: SplashScreen(),
+    );
+  }
+}
+
+class NavigationService {
+  static GlobalKey<NavigatorState> navigatorKey =
+  GlobalKey<NavigatorState>();
+}
