@@ -183,24 +183,12 @@ Other Example:
 
 import 'dart:io';
 
-import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:t_gate/src/Pages/Guard/DashBoardPage.dart';
-import 'package:t_gate/src/Pages/Guard/SplashScreen.dart';
-import 'package:t_gate/src/Pages/Owner/AdminPage.dart';
-import 'package:t_gate/src/Pages/Owner/PreApprovedVisitorsList.dart';
-import 'package:t_gate/src/util/ColorCode.dart';
-import 'package:t_gate/src/util/CommonWidget.dart';
-import 'package:t_gate/src/util/constantKey.dart';
-import 'package:t_gate/src/util/getColor.dart';
 
 
-late List<CameraDescription> cameras;
+
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
@@ -230,7 +218,6 @@ void initializeLocalNotification() {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  cameras = await availableCameras();
   SystemChrome.setPreferredOrientations(
           [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
       .then((_) async {
@@ -258,33 +245,19 @@ Future<void> main() async {
           new Map<String, dynamic>.from(message.data);
 
 
-          if (data["notification_type"] == "VISITORS") {
+          if (data["notification_type"] == "demo1") {
             Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
                 MaterialPageRoute(
                     builder: (context) =>
                         AdminPage()));
           }
-          else if (data["notification_type"] == "APPROVEDREJECTEDSTATUS") {
+          else if (data["notification_type"] == "demo2") {
             Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
                 MaterialPageRoute(
                     builder: (context) =>
                         DashBoardPage()));
           }
-          else if (data["notification_type"] == "VISITORSPREAPPROVED") {
-            Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
-                MaterialPageRoute(
-                    builder: (context) =>
-                        PreApprovedVisitorList()));
-          }
-          else if (data["notification_type"] == "PREAPPROVEDVISITORS") {
-            Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
-                MaterialPageRoute(
-                    builder: (context) =>
-                        AdminPage()));
-          }
-
-
-
+         
 
           // Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminPage()));
         }
@@ -311,32 +284,19 @@ Future<void> main() async {
           //Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminPage()));
 
 
-          if (data["notification_type"] == "VISITORS") {
+          if (data["notification_type"] == "demo1") {
             Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
                 MaterialPageRoute(
                     builder: (context) =>
                         AdminPage()));
           }
-          else if (data["notification_type"] == "APPROVEDREJECTEDSTATUS") {
+          else if (data["notification_type"] == "demo2") {
             Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
                 MaterialPageRoute(
                     builder: (context) =>
                         DashBoardPage()));
           }
-          else if (data["notification_type"] == "VISITORSPREAPPROVED") {
-            Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
-                MaterialPageRoute(
-                    builder: (context) =>
-                        PreApprovedVisitorList()));
-          }
-          else if (data["notification_type"] == "PREAPPROVEDVISITORS") {
-            Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
-                MaterialPageRoute(
-                    builder: (context) =>
-                        AdminPage()));
-          }
-
-
+          
 
         }
       }
