@@ -176,3 +176,401 @@ class NavigationService {
   static GlobalKey<NavigatorState> navigatorKey =
   GlobalKey<NavigatorState>();
 }
+
+
+=====================================================================================================================================
+Other Example:
+
+import 'dart:io';
+
+import 'package:camera/camera.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:t_gate/src/Pages/Guard/DashBoardPage.dart';
+import 'package:t_gate/src/Pages/Guard/SplashScreen.dart';
+import 'package:t_gate/src/Pages/Owner/AdminPage.dart';
+import 'package:t_gate/src/Pages/Owner/PreApprovedVisitorsList.dart';
+import 'package:t_gate/src/util/ColorCode.dart';
+import 'package:t_gate/src/util/CommonWidget.dart';
+import 'package:t_gate/src/util/constantKey.dart';
+import 'package:t_gate/src/util/getColor.dart';
+
+
+late List<CameraDescription> cameras;
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
+
+AndroidNotificationChannel channel1 =AndroidNotificationChannel('channel1', 'this is app notification', importance: Importance.high,
+    playSound: true);
+AndroidNotificationChannel notificationNoSound =AndroidNotificationChannel('channel2', 'this is app notification', importance: Importance.high,
+    playSound: true);
+AndroidNotificationChannel notificationSound1 =AndroidNotificationChannel('channel3', 'this is app notification', importance: Importance.high,
+    playSound: true);
+AndroidNotificationChannel notificationSound2 =AndroidNotificationChannel('channel4', 'this is app notification', importance: Importance.high,
+    playSound: true);
+AndroidNotificationChannel notificationSound3 =AndroidNotificationChannel('channel5', 'this is app notification', importance: Importance.high,
+    playSound: true);
+AndroidNotificationChannel notificationSound4 =AndroidNotificationChannel('channel6', 'this is app notification', importance: Importance.high,
+    playSound: true);
+
+
+void initializeLocalNotification() {
+  var iosInitializationSettings = new IOSInitializationSettings();
+  var androidInitializationSettings =
+  AndroidInitializationSettings('@mipmap/ic_launcher');
+  flutterLocalNotificationsPlugin.initialize(InitializationSettings(iOS: iosInitializationSettings,android: androidInitializationSettings),);
+}
+
+
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  cameras = await availableCameras();
+  SystemChrome.setPreferredOrientations(
+          [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
+      .then((_) async {
+    await Firebase.initializeApp();
+    initializeLocalNotification();
+
+
+
+
+
+    //app background NOTIFICATION CLICK Call method
+    FirebaseMessaging.instance.getInitialMessage().then((message) async {
+      // print("onMessage Instance: ${message!.data}");
+      debugPrint('onMessage Instance');
+      debugPrint(message.toString());
+
+      if (message != null) {
+        if (message.data != null) {
+
+
+
+
+
+          Map<String, dynamic> data =
+          new Map<String, dynamic>.from(message.data);
+
+
+          if (data["notification_type"] == "VISITORS") {
+            Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        AdminPage()));
+          }
+          else if (data["notification_type"] == "APPROVEDREJECTEDSTATUS") {
+            Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        DashBoardPage()));
+          }
+          else if (data["notification_type"] == "VISITORSPREAPPROVED") {
+            Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        PreApprovedVisitorList()));
+          }
+          else if (data["notification_type"] == "PREAPPROVEDVISITORS") {
+            Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        AdminPage()));
+          }
+
+
+
+
+          // Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminPage()));
+        }
+      }
+    });
+
+
+    //App Open Click Notification call this method
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      //print("onMessageOpenedApp: ${message.data}");
+
+      debugPrint('onMessageOpenedApp');
+      debugPrint("App open Notification receive--- "+message.toString());
+
+
+
+
+      if (message != null) {
+        if (message.data != null) {
+          Map<String, dynamic> data =
+          new Map<String, dynamic>.from(message.data);
+          //navigateToPage(data);
+
+          //Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminPage()));
+
+
+          if (data["notification_type"] == "VISITORS") {
+            Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        AdminPage()));
+          }
+          else if (data["notification_type"] == "APPROVEDREJECTEDSTATUS") {
+            Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        DashBoardPage()));
+          }
+          else if (data["notification_type"] == "VISITORSPREAPPROVED") {
+            Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        PreApprovedVisitorList()));
+          }
+          else if (data["notification_type"] == "PREAPPROVEDVISITORS") {
+            Navigator.of(GlobalVariable.navState.currentContext!).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        AdminPage()));
+          }
+
+
+
+        }
+      }
+    });
+
+
+    //background notification sound set below method
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+
+
+
+
+      debugPrint('onMessage: ${message.data}');
+      debugPrint('onMessage');
+      debugPrint(message.toString());
+
+      //Show Local Notification code
+      if(message.notification!=null)
+      {
+
+        debugPrint("For ground notification view--------- ");
+
+        showNotification(message);
+      }
+
+
+    });
+
+
+    initFCM();
+
+
+
+    runApp(new MyApp());
+  });
+}
+
+class MyApp extends StatelessWidget {
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        statusBarColor: getColorFromHex(ColorCode.Color_mildBlue)));
+    return MaterialApp(
+      title: 'Flutter Demo',
+      navigatorKey: GlobalVariable.navState,
+      debugShowCheckedModeBanner: false,
+      home: SplashScreen(),
+    );
+  }
+}
+
+
+class GlobalVariable {
+
+  /// This global key is used in material app for navigation through firebase notifications.
+  /// [navState] usage can be found in [notification_notifier.dart] file.
+  static final GlobalKey<NavigatorState> navState = GlobalKey<NavigatorState>();
+}
+
+//channel create
+const AndroidNotificationChannel channel =AndroidNotificationChannel(
+    'High_importance_channel',
+    'High_importance_notification',
+    importance: Importance.high,
+    playSound: true);
+
+
+void initFCM() {
+  FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+
+  // For iOS request permission first.
+  if (Platform.isIOS) {
+    FirebaseMessaging.instance.requestPermission();
+
+    _firebaseMessaging.getToken().then((token) async {
+      assert(token != null);
+      debugPrint("Push Messaging token: $token");
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString(constantKey.fcmToken, token!);
+    });
+  }
+
+  _firebaseMessaging.getToken().then((token) async {
+    assert(token != null);
+
+    /*   setState(() {
+        _homeScreenText = "Push Messaging token: $token";
+      });
+      print(_homeScreenText);*/
+
+    debugPrint("Push Messaging token: $token");
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(constantKey.fcmToken, token!);
+  });
+
+
+}
+
+
+
+showNotification(RemoteMessage message)
+async {
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  if(message.notification!=null) {
+
+   /* if (message.notification!.title == "Emergency") {
+      flutterLocalNotificationsPlugin.show(
+          message.notification.hashCode, message.notification!.title,
+          message.notification!.body, NotificationDetails(
+        android: AndroidNotificationDetails(
+            channel1.id, channel1.name, color: Colors.blue,
+            playSound: true,
+            sound: RawResourceAndroidNotificationSound("ramp"),
+            icon: '@mipmap/ic_launcher'),
+        iOS: IOSNotificationDetails(sound: 'ramp.wav'),
+      ));
+    }
+    else {
+
+      if( prefs.containsKey(constantKey.notification_sound_1) && prefs.getBool(constantKey.notification_sound_1)==true)
+        {
+          flutterLocalNotificationsPlugin.show(
+              message.notification.hashCode, message.notification!.title,
+              message.notification!.body, NotificationDetails(
+            android: AndroidNotificationDetails(
+                notificationSound1.id, notificationSound1.name, color: Colors.blue,
+                playSound: true,
+                sound: RawResourceAndroidNotificationSound("happy_bells_notification"),
+                icon: '@mipmap/ic_launcher'),
+            iOS: IOSNotificationDetails(sound: 'happy_bells_notification.wav'),
+          ));
+        }
+      else {
+        flutterLocalNotificationsPlugin.show(
+            message.notification.hashCode, message.notification!.title,
+            message.notification!.body, NotificationDetails(
+          android: AndroidNotificationDetails(
+              notificationNoSound.id, notificationNoSound.name,
+              color: Colors.blue,
+              playSound: true,
+              icon: '@mipmap/ic_launcher'),
+        ));
+      }
+
+    }*/
+
+    if( prefs.containsKey(constantKey.notification_sound_1) && prefs.getBool(constantKey.notification_sound_1)==true)
+    {
+      flutterLocalNotificationsPlugin.show(
+          message.notification.hashCode, message.notification!.title,
+          message.notification!.body, NotificationDetails(
+        android: AndroidNotificationDetails(
+            notificationSound1.id, notificationSound1.name, color: Colors.blue,
+            playSound: true,
+            sound: RawResourceAndroidNotificationSound("happy_bells_notification"),
+            icon: '@mipmap/ic_launcher'),
+        iOS: IOSNotificationDetails(sound: 'happy_bells_notification.wav'),
+      ));
+    }
+    else if( prefs.containsKey(constantKey.notification_sound_2) && prefs.getBool(constantKey.notification_sound_2)==true)
+    {
+      flutterLocalNotificationsPlugin.show(
+          message.notification.hashCode, message.notification!.title,
+          message.notification!.body, NotificationDetails(
+        android: AndroidNotificationDetails(
+            notificationSound2.id, notificationSound2.name, color: Colors.blue,
+            playSound: true,
+            sound: RawResourceAndroidNotificationSound("bell_notification"),
+            icon: '@mipmap/ic_launcher'),
+        iOS: IOSNotificationDetails(sound: 'bell_notification.wav'),
+      ));
+    }
+    else if( prefs.containsKey(constantKey.notification_sound_3) && prefs.getBool(constantKey.notification_sound_3)==true)
+    {
+      flutterLocalNotificationsPlugin.show(
+          message.notification.hashCode, message.notification!.title,
+          message.notification!.body, NotificationDetails(
+        android: AndroidNotificationDetails(
+            notificationSound3.id, notificationSound3.name, color: Colors.blue,
+            playSound: true,
+            sound: RawResourceAndroidNotificationSound("musical_alert"),
+            icon: '@mipmap/ic_launcher'),
+        iOS: IOSNotificationDetails(sound: 'musical_alert.wav'),
+      ));
+    }
+    else if( prefs.containsKey(constantKey.notification_sound_4) && prefs.getBool(constantKey.notification_sound_4)==true)
+    {
+      flutterLocalNotificationsPlugin.show(
+          message.notification.hashCode, message.notification!.title,
+          message.notification!.body, NotificationDetails(
+        android: AndroidNotificationDetails(
+            notificationSound4.id, notificationSound4.name, color: Colors.blue,
+            playSound: true,
+            sound: RawResourceAndroidNotificationSound("musical_reveal"),
+            icon: '@mipmap/ic_launcher'),
+        iOS: IOSNotificationDetails(sound: 'musical_reveal.wav'),
+      ));
+    }
+    else {
+      flutterLocalNotificationsPlugin.show(
+          message.notification.hashCode, message.notification!.title,
+          message.notification!.body, NotificationDetails(
+        android: AndroidNotificationDetails(
+            notificationNoSound.id, notificationNoSound.name,
+            color: Colors.blue,
+            playSound: true,
+            icon: '@mipmap/ic_launcher'),
+      ));
+    }
+
+  }
+}
+
+
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+
+
+  debugPrint("App Background Notification receive--- "+message.toString());
+
+  showNotification(message);
+
+
+
+}
+
+
+
